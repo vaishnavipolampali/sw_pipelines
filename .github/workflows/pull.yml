@@ -1,4 +1,4 @@
-name: MSBuild
+name: Pull
 
 on:
   push:
