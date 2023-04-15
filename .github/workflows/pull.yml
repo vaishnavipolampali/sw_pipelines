@@ -1,8 +1,8 @@
 name: Pull
 
 on:
-  push:
-    branches: [ master ]
+  #push:
+  #  branches: [ master ]
   pull_request:
     branches: [ master ]
 
@@ -16,7 +16,7 @@ env:
   BUILD_CONFIGURATION: Release
 
 permissions:
-  contents: write
+  contents: read
 
 jobs:
   build:
@@ -28,7 +28,10 @@ jobs:
     - name: Add MSBuild to PATH
       uses: microsoft/setup-msbuild@v1.0.2
 
-    
+    - name: Restore NuGet packages
+      working-directory: ${{env.GITHUB_WORKSPACE}}
+      run: nuget restore ${{env.SOLUTION_FILE_PATH}}
+
     - name: Build
       working-directory: ${{env.GITHUB_WORKSPACE}}
       # Add additional options to the MSBuild command line here (like platform or verbosity level).
@@ -42,30 +45,26 @@ jobs:
           path: x64\Release\ # or path/to/artifact
           if-no-files-found: error # 'warn' or 'ignore' are also available, defaults to `warn`
       
+
   lint:
-     runs-on: windows-latest
-     steps:
-     - name: RunLint
-       working-directory: ${{env.GITHUB_WORKSPACE}}
-       run: echo LINT
-       
+    runs-on: windows-latest
+
+    steps:
+    - uses: actions/checkout@v3
+
+    - name: RunLint
+      working-directory: ${{env.GITHUB_WORKSPACE}}
+      run: echo LINTING
+
   test:
     needs: [build, lint]
     runs-on: windows-latest
     
     steps:
+    
     - name: Setup VSTest.exe
       uses: Malcolmnixon/Setup-VSTest@v4
-    
-   
-   # - name: UploadBinaries
-   #   uses: actions/upload-artifact@v3
-   #   with:
-   #       name: my-artifact
-   #       path: x64\Release\ # or path/to/artifact
-   #       if-no-files-found: error # 'warn' or 'ignore' are also available, defaults to `warn`
-    
-    
+      
     - name: DownloadBinaries
       uses: actions/download-artifact@v3
       with:
